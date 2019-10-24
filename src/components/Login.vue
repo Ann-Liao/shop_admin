@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 export default {
   data () {
     return {
@@ -44,30 +43,26 @@ export default {
     login () {
       this.$refs.form.validate(isValid => {
         if (!isValid) return
-        axios.post('http://localhost:8888/api/private/v1/login', this.form)
+        this.$axios.post('/login', this.form)
           .then(res => {
-            const { meta } = res.data
+            console.log(res)
+            const { meta, data } = res.data
             if (meta.status === 200) {
               this.$message.success('login successfully')
+              localStorage.setItem('token', data.token)
               this.$router.push('/index')
             } else {
               this.$message.error('failure in login')
             }
-          })
+          }).catch()
       })
     }
   }
 }
 </script>
 
-<style lang="less">
-*{
-  padding: 0;
-  margin: 0;
-}
-html, body, #app {
-  width: 100%;
-  height: 100%;
+<style lang="less" >
+
   .login{
      width: 100%;
      height: 100%;
@@ -96,6 +91,5 @@ html, body, #app {
       }
     }
   }
-}
 
 </style>
