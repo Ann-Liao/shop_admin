@@ -2,14 +2,14 @@
   <div class="users">
     <el-breadcrumb separator-class="el-icon-arrow-right">
   <el-breadcrumb-item :to="{ path: '/index' }">首页</el-breadcrumb-item>
-  <el-breadcrumb-item :to="{ path: '/users' }">用户管理</el-breadcrumb-item>
+  <el-breadcrumb-item >用户管理</el-breadcrumb-item>
   <el-breadcrumb-item >用户列表</el-breadcrumb-item>
 </el-breadcrumb>
   <div class="search">
-    <el-input placeholder="请输入内容"  class="input-with-select">
-    <el-button slot="append" icon="el-icon-search"></el-button>
+    <el-input v-model="query" placeholder="请输入内容"  class="input-with-select">
+    <el-button @click="searchUser" slot="append" icon="el-icon-search"></el-button>
   </el-input>
-  <el-button type="success" plain >添加用户</el-button>
+  <el-button class="addBtn" type="success" plain >添加用户</el-button>
   </div>
     <el-table
     :data="userList"
@@ -76,35 +76,44 @@ export default {
     this.getUserList()
   },
   methods: {
-    getUserList () {
-      this.$axios.get('/users', {
+    async getUserList () {
+      const { data } = await this.$axios.get('users', {
         params: {
           query: this.query,
           pagenum: this.pagenum,
           pagesize: this.pagesize
-        },
-        headers: { authorization: localStorage.getItem('token') }
-
-      }).then(res => {
-        console.log(res)
-        this.userList = res.data.data.users
-        this.total = res.data.data.total
-      }).catch()
-    },
-    del (id) {
-      this.$axios.delete(`/users/${id}`, {
-        params: id,
-        headers: {
-          authorization: localStorage.getItem('token')
         }
-      }).then(res => {
-        console.log(res)
-        this.getUserList()
       })
+      this.userList = data.users
+      this.total = data.total
+    },
+    async del (id) {
+      try {
+        await this.$confirm('您确定要删除此用户吗？', '温馨提示', {
+          type: 'warning'
+        })
+        const { meta } = await this.$axios.delete(`/users/${id}`)
+        if (meta.status === 200) {
+          this.$message.success(meta.msg)
+          if (this.userList.length === 1 && this.pagenum > 1) {
+            this.pagenum--
+          }
+          this.getUserList()
+        } else {
+          this.$message.error(meta.msg)
+        }
+      } catch (e) {
+        this.$message(e)
+      }
+    },
+    searchUser () {
+      this.pagenum = 1
+      this.getUserList()
     },
     handleSizeChange (val) {
       console.log(`每页 ${val} 条`)
       this.pagesize = val
+      this.pagenum = 1
       this.getUserList()
     },
     handleCurrentChange (val) {
@@ -112,13 +121,13 @@ export default {
       this.pagenum = val
       this.getUserList()
     },
-    updateState (id, val) {
-      console.log(id, val)
-      this.$axios.put(`users/${id}/state/${val}`)
-        .then(res => {
-          console.log(res)
-        // this.getUserList()
-        }).catch()
+    async updateState (id, val) {
+      const { meta } = await this.$axios.put(`users/${id}/state/${val}`)
+      if (meta.status === 200) {
+        this.$message.success(meta.msg)
+      } else {
+        this.$message.error(meta.msg)
+      }
     }
   }
 
@@ -135,14 +144,14 @@ export default {
   }
   .search{
     margin-bottom: 10px;
-    .el-input{
+    .input-with-select{
     width: 300px;
     .el-input-group__append{
     padding: 0;
   }
   }
 
-  .el-button{
+  .addBtn{
     margin-left: 20px;
   }
   }

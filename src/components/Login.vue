@@ -40,24 +40,23 @@ export default {
     reset () {
       this.$refs.form.resetFields()
     },
-    login () {
-      this.$refs.form.validate(isValid => {
-        if (!isValid) return
-        this.$axios.post('/login', this.form)
-          .then(res => {
-            console.log(res)
-            const { meta, data } = res.data
-            if (meta.status === 200) {
-              this.$message.success('login successfully')
-              localStorage.setItem('token', data.token)
-              this.$router.push('/index')
-            } else {
-              this.$message.error('failure in login')
-            }
-          }).catch()
-      })
+    async login () {
+      try {
+        await this.$refs.form.validate()
+        const { meta, data } = await this.$axios.post('login', this.form)
+        if (meta.status === 200) {
+          this.$message.success(meta.msg)
+          localStorage.setItem('token', data.token)
+          this.$router.push('/index')
+        } else {
+          this.$message.error(meta.msg)
+        }
+      } catch (e) {
+        console.log(e)
+      }
     }
   }
+
 }
 </script>
 

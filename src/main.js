@@ -8,7 +8,25 @@ import axios from 'axios'
 
 Vue.config.productionTip = false
 Vue.use(ElementUI)
-axios.defaults.baseURL = 'http://localhost:8888/api/private/v1'
+axios.defaults.baseURL = 'http://localhost:8888/api/private/v1/'
+axios.interceptors.request.use(function (config) {
+  config.headers = { authorization: localStorage.getItem('token') }
+  return config
+}, function (error) {
+  return Promise.reject(error)
+})
+axios.interceptors.response.use(function (response) {
+  response = response.data
+  const { meta } = response
+  if (meta.status === 401) {
+    meta.msg = 'the token has expired'
+    localStorage.removeItem('token')
+    router.push('/login')
+  }
+  return response
+}, function (error) {
+  return Promise.reject(error)
+})
 Vue.prototype.$axios = axios
 
 new Vue({

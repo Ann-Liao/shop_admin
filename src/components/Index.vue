@@ -56,22 +56,19 @@
 
 <script>
 export default {
-  data () {
-    return {
-
-    }
-  },
   methods: {
-    logout () {
-      this.$confirm('Are you sure to exit the system', 'notice', {
-        type: 'warning'
-      }).then(res => {
+    async logout () {
+      try {
+        await this.$confirm('Are you sure to exit the system?', 'Notice', {
+          type: 'warning'
+        })
         localStorage.removeItem('token')
         this.$router.push('/login')
-      }).catch()
+      } catch (e) {
+        this.$message(e)
+      }
     }
   }
-
 }
 </script>
 
