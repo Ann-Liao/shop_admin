@@ -3,10 +3,10 @@
   <el-form status-icon :rules="rules" ref="form" :model="form" label-width="80px">
     <img src="../assets/01.jpg" class="logo" alt="">
   <el-form-item label="用户名" prop="username">
-    <el-input v-model="form.username" placeholder="please enter username or email"></el-input>
+    <el-input @keyup.enter.native="login" v-model="form.username" placeholder="please enter username or email"></el-input>
   </el-form-item>
    <el-form-item label="密码" prop="password">
-    <el-input type="password" v-model="form.password" placeholder="please enter password"></el-input>
+    <el-input @keyup.enter.native="login" type="password" v-model="form.password" placeholder="please enter password"></el-input>
   </el-form-item>
    <el-form-item >
     <el-button @click="login" type="primary" class="submit">登录</el-button>
