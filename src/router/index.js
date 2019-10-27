@@ -3,6 +3,8 @@ import VueRouter from 'vue-router'
 import Login from '../components/Login.vue'
 import Index from '../components/Index.vue'
 import Users from '../components/Users.vue'
+import Roles from '../components/Roles.vue'
+import Right from '../components/Right.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push (location) {
@@ -23,7 +25,9 @@ const routes = [
     path: '/index',
     component: Index,
     children: [
-      { path: '/users', component: Users }
+      { path: '/users', component: Users },
+      { path: '/roles', component: Roles },
+      { path: '/right', component: Right }
     ]
   }
 ]

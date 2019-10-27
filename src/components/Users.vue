@@ -1,6 +1,6 @@
 <template>
   <div class="users">
-    <el-breadcrumb separator-class="el-icon-arrow-right">
+  <el-breadcrumb separator-class="el-icon-arrow-right">
   <el-breadcrumb-item :to="{ path: '/index' }">首页</el-breadcrumb-item>
   <el-breadcrumb-item >用户管理</el-breadcrumb-item>
   <el-breadcrumb-item >用户列表</el-breadcrumb-item>
@@ -255,12 +255,6 @@ export default {
 
 <style lang="less" scoped>
 .users{
-  .el-breadcrumb{
-    height: 40px;
-    line-height: 40px;
-    margin-bottom: 10px;
-    border-bottom: 1px solid #ccc
-  }
   .search{
     margin-bottom: 10px;
     .input-with-select{
@@ -269,7 +263,6 @@ export default {
     padding: 0;
   }
   }
-
   .addBtn{
     margin-left: 20px;
   }
