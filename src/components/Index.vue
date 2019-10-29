@@ -13,36 +13,16 @@
   </el-header>
   <el-container>
     <el-aside width="200px">
-       <el-menu
-       router
-       unique-opened
-      default-active="users"
-      class="el-menu-vertical-demo"
-      background-color="#545c64"
-      text-color="#fff"
-      active-text-color="#ffd04b">
-      <el-submenu index="1">
+       <el-menu router unique-opened :default-active="currentPath"  class="el-menu-vertical-demo"
+      background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+      <el-submenu v-for="item in rightList" :key="item.id" :index="item.path">
         <template slot="title">
           <i class="el-icon-location"></i>
-          <span>用户管理</span>
+          <span>{{ item.authName}}</span>
         </template>
-        <el-menu-item index="users">
+        <el-menu-item v-for="value in item.children" :key="value.id" :index="value.path">
         <i class="el-icon-menu"></i>
-        <span slot="title">用户列表</span>
-      </el-menu-item>
-      </el-submenu>
-       <el-submenu index="2">
-        <template v-slot:title>
-          <i class="el-icon-location"></i>
-          <span>权限管理</span>
-        </template>
-        <el-menu-item index="roles">
-        <i class="el-icon-menu"></i>
-        <span slot="title">角色列表</span>
-      </el-menu-item>
-      <el-menu-item index="right">
-        <i class="el-icon-menu"></i>
-        <span slot="title">权限列表</span>
+        <span slot="title">{{ value.authName}}</span>
       </el-menu-item>
       </el-submenu>
     </el-menu>
@@ -56,6 +36,23 @@
 
 <script>
 export default {
+  data () {
+    return {
+      rightList: []
+    }
+  },
+  computed: {
+    currentPath () {
+      return this.$route.path.slice(1)
+    }
+  },
+  async created () {
+    const { meta, data } = await this.$axios.get('menus')
+    if (meta.status === 200) {
+      this.rightList = data
+      console.log(data)
+    }
+  },
   methods: {
     async logout () {
       try {

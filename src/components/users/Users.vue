@@ -43,7 +43,7 @@
       <template v-slot:default="scope">
         <el-button @click="showEditDialog(scope.row)" size="mini" icon="el-icon-edit" plain type="primary"></el-button>
         <el-button @click="del(scope.row.id)" size="mini" icon="el-icon-delete" plain type="danger"></el-button>
-        <el-button size="mini" icon="el-icon-check" plain type="success">分配角色</el-button>
+        <el-button @click="showAssignDialog(scope.row)" size="mini" icon="el-icon-check" plain type="success">分配角色</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -81,6 +81,7 @@
       <el-button type="primary" @click="addUser">确 定</el-button>
     </span></template>
 </el-dialog>
+<!-- editDialog -->
 <el-dialog
   title="修改用户"
   :visible.sync="editVisible"
@@ -100,6 +101,28 @@
     <template v-slot:footer><span class="dialog-footer">
       <el-button @click="addVisible = false">取 消</el-button>
       <el-button type="primary" @click="editUser">确 定</el-button>
+    </span></template>
+</el-dialog>
+<!-- assignDialog -->
+<el-dialog title="分配角色" :visible.sync="assignVisible" width="40%">
+  <el-form :model="assignForm" label-width="80px">
+    <el-form-item label="用户名">
+      <el-tag type="info">{{ assignForm.username }}</el-tag>
+    </el-form-item>
+    <el-form-item label="角色列表">
+      <el-select v-model="value" clearable placeholder="请选择">
+        <el-option
+        v-for="item in options"
+        :key="item.id"
+        :label="item.roleName"
+        :value="item.id">
+      </el-option>
+    </el-select>
+    </el-form-item>
+  </el-form>
+   <template v-slot:footer><span class="dialog-footer">
+      <el-button @click="assignVisible = false">取 消</el-button>
+      <el-button  @click="assignRole" type="primary">确 定</el-button>
     </span></template>
 </el-dialog>
   </div>
@@ -143,6 +166,13 @@ export default {
         mobile: [
           { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: ['change', 'blur'] }
         ]
+      },
+      value: '',
+      options: [],
+      assignVisible: false,
+      assignForm: {
+        id: '',
+        username: ''
       }
     }
   },
@@ -247,6 +277,34 @@ export default {
     },
     closeEditDialog () {
       this.$refs.editForm.resetFields()
+    },
+    async showAssignDialog (row) {
+      this.assignVisible = true
+      this.assignForm.username = row.username
+      this.assignForm.id = row.id
+      const { meta, data } = await this.$axios.get('roles')
+      if (meta.status === 200) {
+        this.options = data
+      } else {
+        this.$message.error(meta.msg)
+      }
+      const res = await this.$axios.get(`users/${row.id}`)
+      if (res.meta.status === 200) {
+        this.value = res.data.rid === -1 ? '' : res.data.rid
+        console.log(this.value)
+      } else {
+        this.$message.error(res.meta.msg)
+      }
+    },
+    async assignRole () {
+      const { meta } = await this.$axios.put(`users/${this.assignForm.id}/role`, { rid: this.value })
+      if (meta.status === 200) {
+        this.$message.success(meta.msg)
+        this.assignVisible = false
+        this.getUserList()
+      } else {
+        this.$message.error(meta.msg)
+      }
     }
   }
 
@@ -267,8 +325,6 @@ export default {
     margin-left: 20px;
   }
   }
-  .el-pagination{
-    margin-top: 20px;
-  }
+
 }
 </style>

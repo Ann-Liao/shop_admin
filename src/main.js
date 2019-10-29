@@ -5,6 +5,7 @@ import 'element-ui/lib/theme-chalk/index.css'
 import './css/common.css'
 import router from './router'
 import axios from 'axios'
+import moment from 'moment'
 
 Vue.config.productionTip = false
 Vue.use(ElementUI)
@@ -29,6 +30,9 @@ axios.interceptors.response.use(function (response) {
 })
 Vue.prototype.$axios = axios
 
+Vue.filter('format', function (val) {
+  return moment(val * 1000).format('YYYY-MM-DD hh:mm:ss')
+})
 new Vue({
   router,
   render: h => h(App)

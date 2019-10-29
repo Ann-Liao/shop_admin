@@ -9,6 +9,7 @@
  <el-table :data="rolesList">
    <el-table-column type="expand">
      <template v-slot:default="{row}">
+        <p v-if="row.children.length === 0">暂无权限</p>
        <el-row class="l1" v-for='l1 in row.children' :key="l1.id">
          <el-col :span="4">
            <el-tag closable @close="closeTag(row, l1.id)" >{{ l1.authName }}</el-tag>
@@ -33,16 +34,17 @@
      <template v-slot:default="{ row }">
        <el-button @click="showEditDialog(row)" type="primary" plain size="small" icon='el-icon-edit'></el-button>
      <el-button @click="delRole(row.id)" type="danger" plain size="small" icon='el-icon-delete'></el-button>
-     <el-button type="success" plain size="small" icon='el-icon-check'>分配权限</el-button>
+     <el-button @click="showAssignDialog(row)" type="success" plain size="small" icon='el-icon-check'>分配权限</el-button>
      </template>
    </el-table-column>
  </el-table>
- <el-dialog @open="closeDialog" :title="dialogTitle" :visible.sync="editVisible" width="40%">
+ <!-- addDialog -->
+ <el-dialog @close="closeDialog" :title="dialogTitle" :visible.sync="editVisible" width="40%">
   <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-    <el-form-item label="角色名称" prop="rolename">
+    <el-form-item label="角色名称" prop="roleName">
       <el-input v-model="form.roleName"></el-input>
     </el-form-item>
-    <el-form-item label="角色描述" prop="roledesc">
+    <el-form-item label="角色描述" prop="roleDesc">
       <el-input v-model="form.roleDesc"></el-input>
     </el-form-item>
   </el-form>
@@ -53,6 +55,21 @@
   </span>
   </template>
  </el-dialog>
+ <!-- assignDialog -->
+  <el-dialog title="分配权限" :visible.sync="assignVisible" width="40%">
+    <el-form :model="assignForm" >
+      <el-form-item>
+        <el-tree ref="tree" default-expand-all
+         node-key="id" show-checkbox :data="rightList" :props="defaultProps"></el-tree>
+    </el-form-item>
+    </el-form>
+     <template v-slot:footer>
+      <span class="dialog-footer">
+      <el-button @click="assignVisible = false">取 消</el-button>
+      <el-button @click="assignRight" type="primary">分 配</el-button>
+    </span>
+    </template>
+  </el-dialog>
   </div>
 </template>
 
@@ -69,15 +86,25 @@ export default {
       },
       dialogTitle: '',
       rules: {
-        rolename: [
+        roleName: [
           { required: true, message: '请输入正确的角色名称', trigger: ['blur', 'change'] },
           { min: 3, max: 12, message: '长度为3-12', trigger: ['blur', 'change'] }
         ],
-        roledesc: [
+        roleDesc: [
           { required: true, message: '请输入正确的角色描述', trigger: ['blur', 'change'] },
           { min: 3, max: 12, message: '长度为3-12', trigger: ['blur', 'change'] }
         ]
-      }
+      },
+      rightList: [],
+      defaultProps: {
+        children: 'children',
+        label: 'authName'
+      },
+      assignForm: {
+        id: '',
+        rids: []
+      },
+      assignVisible: false
     }
   },
   created () {
@@ -87,7 +114,6 @@ export default {
     async getRolesList () {
       const { meta, data } = await this.$axios.get('roles')
       if (meta.status === 200) {
-        console.log(data)
         this.rolesList = data
       } else {
         this.$message.error(meta.msg)
@@ -110,19 +136,18 @@ export default {
     showEditDialog (row) {
       this.dialogTitle = '修改角色'
       this.editVisible = true
-      this.form.roleName = row.roleName
-      this.form.roleDesc = row.roleDesc
-      this.form.roleId = row.id
+      this.$nextTick(() => {
+        this.form.roleName = row.roleName
+        this.form.roleDesc = row.roleDesc
+        this.form.roleId = row.id
+      })
     },
     showAddDialog () {
       this.dialogTitle = '添加角色'
-      // this.form.roleName = ''
-      // this.form.roleDesc = ''
       this.editVisible = true
     },
     closeDialog () {
-      // this.$refs.form.resetFields()
-      console.log(999)
+      this.$refs.form.resetFields()
     },
     async editRoles (row) {
       try {
@@ -154,6 +179,40 @@ export default {
         }
       } catch (e) {
         console.log(e)
+      }
+    },
+    async showAssignDialog (row) {
+      this.assignVisible = true
+      const { meta, data } = await this.$axios.get('rights/tree')
+      if (meta.status === 200) {
+        this.rightList = data
+      } else {
+        this.$message.error(meta.msg)
+      }
+      const rids = []
+      row.children.forEach(item => {
+        item.children.forEach(item => {
+          item.children.forEach(item => {
+            rids.push(item.id)
+          })
+        })
+      })
+      this.assignForm.rids = rids
+      this.assignForm.id = row.id
+      this.$refs.tree.setCheckedKeys(this.assignForm.rids)
+    },
+    async assignRight () {
+      const ids = this.$refs.tree.getCheckedKeys()
+      const halfs = this.$refs.tree.getHalfCheckedKeys()
+      const rids = [...ids, ...halfs].join(',')
+      const { id } = this.assignForm
+      const { meta } = await this.$axios.post(`roles/${id}/rights`, { rids })
+      if (meta.status === 200) {
+        this.$message.success(meta.msg)
+        this.assignVisible = false
+        this.getRolesList()
+      } else {
+        this.$message.error(meta.msg)
       }
     }
   }

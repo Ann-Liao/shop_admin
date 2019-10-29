@@ -12,3 +12,6 @@ html, body, #app{
   margin-bottom: 10px;
   border-bottom: 1px solid #ccc
 }
+.el-pagination{
+  margin-top: 20px;
+}
