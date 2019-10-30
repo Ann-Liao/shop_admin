@@ -50,7 +50,6 @@ export default {
     const { meta, data } = await this.$axios.get('menus')
     if (meta.status === 200) {
       this.rightList = data
-      console.log(data)
     }
   },
   methods: {

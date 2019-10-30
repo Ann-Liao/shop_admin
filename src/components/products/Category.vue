@@ -1,7 +1,10 @@
 <template>
   <div class="category">
     <el-button @click="showDialog('add')" class="addBtn" type="success" plain>添加分类</el-button>
-    <el-table row-key="cat_id" lazy
+    <el-table v-loading="loading"
+    element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(255, 255, 255, 0.8)" row-key="cat_id" lazy
     :tree-props="{children: 'children', hasChildren: 'hasChildren'}"  :data="cateList">
       <el-table-column  label="分类名称" prop="cat_name"></el-table-column>
       <el-table-column label="是否有效" >
@@ -51,6 +54,7 @@
 export default {
   data () {
     return {
+      loading: false,
       value: [],
       options: [],
       defaultParams: {
@@ -83,15 +87,15 @@ export default {
   },
   methods: {
     async getOptions () {
-      const { meta, data } = await this.$axios.get('categories',
-        { params: { type: 2, pagenum: 1, pagesize: 4 } })
+      const { meta, data } = await this.$axios.get('categories?type=2')
       if (meta.status === 200 || meta.status === 201) {
-        this.options = data.result
+        this.options = data
       } else {
         this.$message.error(meta.msg)
       }
     },
     async getCateList () {
+      this.loading = true
       const { meta, data } = await this.$axios.get('categories', {
         params: this.queryStr
       })
@@ -101,6 +105,7 @@ export default {
       } else {
         this.$message.error(meta.msg)
       }
+      this.loading = false
     },
     handleSizeChange (val) {
       this.queryStr.pagesize = val
@@ -133,6 +138,7 @@ export default {
       this.dialogVisible = true
       this.dialogTitle = type === 'edit' ? '修改分类' : '添加分类'
       this.form.cat_id = id
+      // this.getOptions()
     },
     async submit () {
       try {
@@ -141,7 +147,7 @@ export default {
         const method = isAdd ? 'post' : 'put'
         const url = isAdd ? 'categories' : `categories/${this.form.cat_id}`
         console.log(this.value[0])
-        const config = isAdd ? { cat_level: 3, cat_pid: this.value[0], cat_name: this.form.cat_name } : this.form
+        const config = isAdd ? { cat_level: this.value.length, cat_pid: this.value[this.value.length - 1] || 0, cat_name: this.form.cat_name } : this.form
         const { meta } = await this.$axios[method](url, config)
         if (meta.status === 200 || meta.status === 201) {
           this.$message.success(meta.msg)
