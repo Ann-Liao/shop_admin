@@ -2,7 +2,7 @@
   <div class="list">
     <el-button @click="goToGoogdsAdd" class="addBtn" type="success" plain>添加商品</el-button>
     <el-table :data="goodsList">
-      <el-table-column type="index"></el-table-column>
+      <el-table-column type="index" :index="indexHandler"></el-table-column>
       <el-table-column label="商品名称" prop="goods_name"></el-table-column>
       <el-table-column label="商品价格" prop="goods_price"></el-table-column>
       <el-table-column label="商品重量" prop="goods_weight"></el-table-column>
@@ -71,6 +71,9 @@ export default {
     },
     goToGoogdsAdd () {
       this.$router.push('/goods-add')
+    },
+    indexHandler (index) {
+      return index + 1 + (this.queryStr.pagenum - 1) * this.queryStr.pagesize
     }
   }
 }
